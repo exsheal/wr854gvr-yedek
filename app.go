@@ -11,8 +11,40 @@ import (
 
 func main() {
 	platformInit()
+	initLog()
 	banner()
 
+	code := 0
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				if r == panicExit {
+					code = 1
+					return
+				}
+				// Beklenmeyen hata: kullaniciya goster ve loga yaz.
+				fmt.Println()
+				fmt.Printf("BEKLENMEYEN HATA: %v\n", r)
+				fmt.Println()
+				fmt.Println("Bu ekranin fotografini ve wr854-yedek-log.txt dosyasini")
+				fmt.Println("bize gonderin.")
+				code = 2
+			}
+		}()
+		code = run()
+	}()
+
+	pauseBeforeExit()
+	flushLog()
+	os.Exit(code)
+}
+
+// panicExit, fatal()'in akisi durdurmak icin kullandigi ic sinyal.
+// os.Exit kullanmadigimiz icin ekran ve log dosyasi son sozunu soyleyebiliyor.
+var panicExit = struct{ s string }{"fatal"}
+
+// run, programin asil akisi.
+func run() int {
 	// ---- 1) credentials ------------------------------------------------
 	ip := ask("Cihaz IP adresi", defaultIP)
 	user := ask("Web arayüzü kullanıcı adı", "admin")
@@ -76,7 +108,7 @@ func main() {
 
 	if !confirm("Yedek alınsın mı") {
 		fmt.Println("İptal edildi.")
-		return
+		return 0
 	}
 
 	// ---- 4) send payload ----------------------------------------------
@@ -162,7 +194,7 @@ func main() {
 		fmt.Println("  - Windows güvenlik duvarı programı engelledi")
 		fmt.Println("  - Cihaz bu makineye ulaşamıyor (farklı VLAN/alt ağ)")
 		fmt.Println("  - Port 9101-9105 aralığı başka bir program tarafından kullanılıyor")
-		os.Exit(1)
+		return 1
 	}
 
 	if err := writeChecksums(abs, results); err != nil {
@@ -173,6 +205,7 @@ func main() {
 	fmt.Println()
 	fmt.Println("Yedek tamamlandı. Cihazın flash'ına hiçbir şey yazılmadı,")
 	fmt.Println("boot environment değişmedi ve cihaz yeniden başlatılmadı.")
+	return 0
 }
 
 // ---------------------------------------------------------------- output
@@ -196,7 +229,24 @@ func ok(format string, a ...any) {
 func fatal(format string, a ...any) {
 	fmt.Println()
 	fmt.Printf("HATA: "+format+"\n", a...)
-	os.Exit(1)
+	panic(panicExit)
+}
+
+// pauseBeforeExit, cift tiklayarak calistirilan bir .exe'de pencerenin
+// kapanmasini engeller. Boylece kullanici hata mesajini okuyabilir ve
+// bize iletebilir. Konsol yoksa (yonlendirilmis cikti) sessizce gecer.
+func pauseBeforeExit() {
+	fmt.Println()
+	if p := logPath(); p != "" {
+		fmt.Printf("Log dosyası: %s\n", p)
+	}
+	// Sadece gercek bir konsol varsa bekle; cikti bir dosyaya/boruya
+	// yonlendirilmisse beklemeden gec.
+	if fi, err := os.Stdin.Stat(); err != nil || fi.Mode()&os.ModeCharDevice == 0 {
+		return
+	}
+	fmt.Println("Kapatmak icin Enter'a basin...")
+	stdin.ReadString('\n')
 }
 
 func reportProgress(p partition, n int64) {

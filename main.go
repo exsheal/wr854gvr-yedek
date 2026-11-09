@@ -40,7 +40,7 @@ import (
 
 const (
 	appName    = "WR854GVR Yedek Al"
-	appVersion = "1.0"
+	appVersion = "1.1"
 	defaultIP  = "192.168.1.1"
 
 	// Cihaz payload tarafındaki sabitlerle eşleşir.

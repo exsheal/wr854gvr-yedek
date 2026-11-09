@@ -18,9 +18,9 @@ Bu araç **yalnızca sahibi olduğunuz cihazlarda** kullanılmak içindir.
 
 ## Kullanım
 
-```
-WR854GVR-Yedek.exe
-```
+**Önerilen:** `WR854GVR-Yedek.bat` dosyasına çift tıklayın. `.exe` ile aynı klasörde olmalı. Bitince çıkış kodunu ve log dosyasının yolunu gösterip bekler.
+
+Doğrudan `WR854GVR-Yedek.exe` de çalıştırılabilir.
 
 Program sırayla şunları sorar:
 
@@ -32,6 +32,16 @@ Yedeğin kaydedileceği klasör [...\Desktop\WR854GVR-yedek-20261109-1200]:
 ```
 
 Sonra bağlantıları kontrol eder (cihaz yanıtı, giriş, yükleme sayfası, yerel adres, portlar), onay ister ve yedeği alır.
+
+> **IP adresi önemli.** `192.168.1.1` yalnızca varsayılandır. Cihaz bir üst modem/router'a bağlıysa ya da AP modunda farklı bir bloktaysa, cihazın **kendi** adresini yazın. Yanlış adreste program 6 saniye içinde "cihaza ulaşılamıyor" hatası verir; beklemez.
+
+### Log dosyası
+
+Ekrana yazılan her şey, `.exe`'nin bulunduğu klasördeki **`wr854-yedek-log.txt`** dosyasına da yazılır (o klasör yazılamıyorsa `%TEMP%` altına). Hata bildirirken bu dosyayı göndermek yeterlidir. **Şifre loga yazılmaz.**
+
+### Pencere kapanmıyor
+
+Program hangi sebeple biterse bitsin (başarı, hata, beklenmeyen durum) sonuç ekranda kalır ve Enter beklenir. Pencere artık kendiliğinden kapanmaz.
 
 ### Çıktı
 
@@ -99,6 +109,8 @@ if (local_4 == 0) {                      /* <-- yalnızca script 0 dönerse */
 ```
 
 `exit 1` ile bu dal hiç çalışmaz: **ne boot env yazılır ne cihaz yeniden başlar.** Araçta `flash`, `nandwrite`, `ubiupdatevol`, `mtd write` çağrısı yoktur — yalnızca `nanddump`.
+
+> Bu satır **kaldırılmamalı.** Betiğe `exit 0` ya da yalnızca `exit` yazmak, stok `configd`'yi yukarıdaki başarı dalını işletmeye zorlar: boot environment'a `sw_updater`/`sw_tryactive` yazılır ve cihaz yeniden başlatılır. Ayrıca betiğin stdout'u bu programı çalıştıran bilgisayara değil, cihazın UART konsoluna gider — görmek için `exit`'i kaldırmak hiçbir şey kazandırmaz.
 
 Cihazın bu isteğe verdiği `Geçersiz resim dosyası` yanıtı **beklenen** sonuçtur; döküm yine de alınmış olur.
 
