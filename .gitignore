@@ -1,0 +1,14 @@
+# Derleme çıktıları
+*.exe
+!WR854GVR-Yedek.exe
+wr854-backup
+
+# Yedek dökümleri (asla commit edilmemeli)
+*.bin
+md5sums.txt
+WR854GVR-yedek-*/
+
+# Editör / işletim sistemi
+.DS_Store
+Thumbs.db
+*.swp
